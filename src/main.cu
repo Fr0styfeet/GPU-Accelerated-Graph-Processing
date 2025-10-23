@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include "../include/graph.h"
+#include "../include/graph_weighted.h"
 #include "../include/utils.h"
 // #include "./bfs.cu"
 #include "bfs.h"
@@ -41,9 +42,9 @@ int main() {
             ifstream fin(file);
             // fin >> V ;
             V = 4039 ;
-            CSRGraph g = loadGraphToCSR(file, V);
             cout<<V<<endl;
             fin.close();
+            CSRGraph g = loadGraphToCSR(file, V);
 
             int src;
             cout << "Enter src vertex: "; cin >> src;
@@ -59,11 +60,13 @@ int main() {
         }
 
         case 2: {
-            file = "delivery_dataset.txt";
-            CSRGraph g = loadGraphToCSR(file, V);
+            // file = "delivery_dataset.txt";
+            file = "../data/weighted_graph.txt";
             ifstream fin(file);
-            fin >> V ;
+            // fin >> V ;
+            V = 6;
             fin.close();
+            CSRGraph g = loadGraphToCSR(file, V);
 
             int src;
             cout << "Enter src vertex: "; cin >> src;
@@ -80,10 +83,10 @@ int main() {
 
         case 3: {
             file = "web-Google.txt";
-            CSRGraph g = loadGraphToCSR(file, V);
             ifstream fin(file);
             fin >> V ;
             fin.close();
+            CSRGraph g = loadGraphToCSR(file, V);
 
             float damping = 0.85f, epsilon = 1e-6;
             cout << "\nPageRank execution on GPU \n";
@@ -98,11 +101,11 @@ int main() {
         }
         
         case 4: {
-            file = "email-Eu-core.txt";
             CSRGraph g = loadGraphToCSR(file, V);
             ifstream fin(file);
             fin >> V ;
             fin.close();
+            file = "email-Eu-core.txt";
 
             cout << "\nFinding Connected Components execution on GPU \n";
 
