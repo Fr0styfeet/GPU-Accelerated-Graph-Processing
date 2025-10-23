@@ -1,11 +1,13 @@
 #include <iostream>
 #include <string>
-#include "graph.h"
+#include "../include/graph.h"
+#include "../include/utils.h"
+// #include "./bfs.cu"
 #include "bfs.h"
-#include "sssp.h"
-#include "pagerank.h"
-#include "connected_components.h"
-#include "utils.h"
+// #include "sssp.h"
+// #include "pagerank.h"
+// #include "connected_components.h"
+// #include "utils.h"
 using namespace std;
 
 void showMenu() {
@@ -35,9 +37,12 @@ int main() {
 
         switch (choice) {
         case 1: {
-            CSRGraph g = loadGraphToCSR(file, V);
+            file = "../data/facebook_combined.txt";
             ifstream fin(file);
-            int V; fin >> V ;
+            // fin >> V ;
+            V = 4039 ;
+            CSRGraph g = loadGraphToCSR(file, V);
+            cout<<V<<endl;
             fin.close();
 
             int src;
@@ -54,9 +59,10 @@ int main() {
         }
 
         case 2: {
+            file = "delivery_dataset.txt";
             CSRGraph g = loadGraphToCSR(file, V);
             ifstream fin(file);
-            int V; fin >> V ;
+            fin >> V ;
             fin.close();
 
             int src;
@@ -65,7 +71,7 @@ int main() {
 
             double start = getTime();
 
-            ssspGPU(g, src);
+            //ssspGPU(g, src);
 
             double end = getTime();
             cout << "Execution time: " << (end - start) << " ms\n";
@@ -73,9 +79,10 @@ int main() {
         }
 
         case 3: {
+            file = "web-Google.txt";
             CSRGraph g = loadGraphToCSR(file, V);
             ifstream fin(file);
-            int V; fin >> V ;
+            fin >> V ;
             fin.close();
 
             float damping = 0.85f, epsilon = 1e-6;
@@ -83,7 +90,7 @@ int main() {
 
             double start = getTime();
 
-            pagerankGPU(g, damping, epsilon);
+            //pagerankGPU(g, damping, epsilon);
 
             double end = getTime();
             cout << "Execution time: " << (end - start) << " ms\n";
@@ -91,16 +98,17 @@ int main() {
         }
         
         case 4: {
+            file = "email-Eu-core.txt";
             CSRGraph g = loadGraphToCSR(file, V);
             ifstream fin(file);
-            int V; fin >> V ;
+            fin >> V ;
             fin.close();
 
             cout << "\nFinding Connected Components execution on GPU \n";
 
             double start = getTime();
 
-            connectedComponentsGPU(g);
+            //connectedComponentsGPU(g);
 
             double end = getTime();
             cout << "Execution time: " << (end - start) << " ms\n";
