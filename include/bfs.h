@@ -1,9 +1,11 @@
 #pragma once
 #include "graph.h"
+#include <vector>
 
-// Declaration only (no definitions here)
-__global__ void bfsKernel(int *rowPtr, int *colInd, int *frontier,
-                          int *nextFrontier, int *visited, int *dist,
-                          int V, bool *done);
-
-void bfsGPU(const CSRGraph &g, int source);
+class BFS {
+private:
+    CSRGraph graph;
+public:
+    BFS(const CSRGraph& g);
+    void run(int source);
+};

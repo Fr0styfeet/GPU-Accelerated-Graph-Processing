@@ -1,0 +1,26 @@
+# Compiler
+NVCC = nvcc
+
+# Include directories
+INCLUDES = -Iinclude
+
+# Source files
+SRC = src/main.cu src/bfs.cu src/dijkstra.cu
+
+# Output executable
+OUT = build/graphApp.exe
+
+# Compile flags
+CFLAGS = -O3 --use_fast_math -std=c++17
+
+# Default target
+all: $(OUT)
+
+# Build executable
+$(OUT): $(SRC)
+	@if not exist build mkdir build
+	$(NVCC) $(CFLAGS) $(INCLUDES) $(SRC) -o $(OUT)
+
+# Clean build
+clean:
+	if exist build rmdir /s /q build
