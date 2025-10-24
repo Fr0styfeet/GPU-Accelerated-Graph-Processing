@@ -2,21 +2,21 @@
 #include <vector>
 #include <string>
 #include <fstream>
-#include <sstream>
 #include <iostream>
 #include <algorithm>
-#include <tuple>       // ✅ needed for std::tuple and std::tie
-#include <utility>     // ✅ safety include for std::pair
+#include <tuple>
 
 struct CSRGraphWeighted {
-    std::vector<int> rowPtr;
-    std::vector<int> colInd;
-    std::vector<float> weights; // weights[i] corresponds to colInd[i]
+    std::vector<int> rowPtr;        // row pointers (size = V+1)
+    std::vector<int> colInd;        // column indices
+    std::vector<float> weights;     // edge weights corresponding to colInd
 };
 
+// Load weighted edge list into CSR format
 inline CSRGraphWeighted loadWeightedGraphToCSR(const std::string &filename, int &V) {
     std::vector<std::tuple<int,int,float>> edges;
     std::ifstream fin(filename);
+
     if (!fin.is_open()) {
         std::cerr << "Error: Cannot open file " << filename << std::endl;
         exit(1);
@@ -24,34 +24,35 @@ inline CSRGraphWeighted loadWeightedGraphToCSR(const std::string &filename, int 
 
     int u, v;
     float w;
-    int maxNode = 0;
+    int maxNode = -1;
+
     while (fin >> u >> v >> w) {
-        // ✅ safer push_back with explicit tuple construction
         edges.push_back(std::make_tuple(u, v, w));
         maxNode = std::max({maxNode, u, v});
     }
     fin.close();
 
+    // Compute number of vertices
     V = maxNode + 1;
 
+    // Build adjacency list
     std::vector<std::vector<std::pair<int,float>>> adj(V);
     for (auto &e : edges) {
-        int uu, vv;
-        float ww;
-        std::tie(uu, vv, ww) = e;   // ✅ fixed (tie now available)
-        adj[uu].push_back({vv, ww});
+        std::tie(u, v, w) = e;
+        adj[u].push_back({v, w});
     }
 
+    // Build CSR
     CSRGraphWeighted g;
     g.rowPtr.resize(V + 1, 0);
-
-    for (int i = 0; i < V; ++i) {
+    for (int i = 0; i < V; ++i)
         g.rowPtr[i + 1] = g.rowPtr[i] + adj[i].size();
+
+    for (int i = 0; i < V; ++i)
         for (auto &p : adj[i]) {
             g.colInd.push_back(p.first);
             g.weights.push_back(p.second);
         }
-    }
 
     return g;
 }
