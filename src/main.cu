@@ -19,8 +19,8 @@ int main() {
         cin >> src;
 
         if(choice==1) {
-            string file ="./data/graph.txt";
-            V=5;
+            string file ="./data/facebook_combined.txt";
+            V=4039; 
             CSRGraph g = loadGraphToCSR(file, V);
             BFS bfs(g);
             bfs.run(src);

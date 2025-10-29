@@ -11,7 +11,7 @@ SRC = src/main.cu src/bfs.cu src/dijkstra.cu
 OUT = build/graphApp.exe
 
 # Compile flags
-CFLAGS = -O3 --use_fast_math -std=c++17
+CFLAGS = -O3 --use_fast_math -std=c++17 -arch=sm_86
 
 # Default target
 all: $(OUT)
