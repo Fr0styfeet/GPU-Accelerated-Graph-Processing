@@ -1,35 +1,49 @@
 #include <iostream>
-#include "graph.h"
+#include <chrono>
 #include "graph_weighted.h"
-#include "bfs.h"
-#include "dijkstra.h"
+#include "bellman.h"
 
 using namespace std;
+using namespace std::chrono;
 
 int main() {
-    int choice;
-    while(true) {
-        cout << "1. BFS\n2. Dijkstra\n3. Exit\nChoice: ";
-        cin >> choice;
-        if(choice==3) break;
+    while (true) {
+        cout << "\nB E L L M A N - F O R D   C O M P A R I S O N\n";
+        cout << "1. Run Bellman-Ford on CPU\n";
+        cout << "2. Run Bellman-Ford on GPU\n";
+        cout << "4. Exit\n";
+        cout << "Enter your choice: ";
 
-        int V, src;
+        int choice;
+        cin >> choice;
+        if (choice == 4) break;
+
+        int src, V;
+        string file = "./data/large_weight.txt"; 
 
         cout << "Enter source vertex: ";
         cin >> src;
 
-        if(choice==1) {
-            string file ="./data/facebook_combined.txt";
-            V=4039; 
-            CSRGraph g = loadGraphToCSR(file, V);
-            BFS bfs(g);
-            bfs.run(src);
-        } else if(choice==2) {
-            string file ="./data/weighted.txt";
-            V= 4;
-            CSRGraphWeighted g = loadWeightedGraphToCSR(file, V);
-            Dijkstra dj(g);
-            dj.run(src);
+        CSRGraphWeighted g = loadWeightedGraphToCSR(file, V);
+        bellman bf(g);
+
+        if (choice == 1) {
+
+            cout << "\nRunning Bellman-Ford on CPU...\n";
+
+            bf.runCPU(src);
+
+        }
+        else if (choice == 2) {
+
+            cout << "\nRunning Bellman-Ford on GPU...\n";
+            bf.runGPU(src);
+
+        }
+        else {
+            cout << "Invalid choice!\n";
         }
     }
+
+    return 0;
 }

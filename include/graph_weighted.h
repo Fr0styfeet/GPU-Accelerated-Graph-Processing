@@ -1,41 +1,78 @@
-#include <omp.h>
+#pragma once
 #include <vector>
+#include <string>
+#include <fstream>
+#include <iostream>
+#include <algorithm>
+#include <tuple>
+#include <omp.h>
 
-void buildCSR(int n, int m, float **A,std::vector<int> &row_ptr,std::vector<int> &col_idx,std::vector<float> &val)
+struct CSRGraphWeighted {
+    std::vector<int> rowPtr;
+    std::vector<int> colInd;
+    std::vector<float> weights;
+};
+
+inline CSRGraphWeighted loadWeightedGraphToCSR(const std::string &filename, int &V) 
 {
-    std::vector<int> row_count(n, 0);
+    std::vector<std::tuple<int,int,float>> edges;
+    std::ifstream fin(filename);
 
-    // PASS 1: Count non-zero entries
-    #pragma omp parallel for
-    for (int i = 0; i < n; i++) {
-        int cnt = 0;
-        for (int j = 0; j < m; j++)
-            if (A[i][j] != 0) cnt++;
-
-        row_count[i] = cnt;
+    if (!fin.is_open()) {
+        std::cerr << "Error: Cannot open file " << filename << std::endl;
+        exit(1);
     }
 
-    // PASS 2: Build row_ptr (serial)
-    row_ptr.resize(n + 1);
-    row_ptr[0] = 0;
-    for (int i = 0; i < n; i++)
-        row_ptr[i + 1] = row_ptr[i] + row_count[i];
+    int u, v;
+    float w;
+    int maxNode = -1;
 
-    int nnz = row_ptr[n];
-    col_idx.resize(nnz);
-    val.resize(nnz);
+    // File reading must remain serial (I/O bottleneck anyway)
+    while (fin >> u >> v >> w) {
+        edges.push_back({u, v, w});
+        maxNode = std::max({maxNode, u, v});
+    }
+    fin.close();
 
-    // PASS 3: Fill CSR data
+    V = maxNode + 1;
+
+    // Build adjacency list (simple)
+    std::vector<std::vector<std::pair<int,float>>> adj(V);
+
+    // This loop CAN be parallelized because each index writes to adj[u] only
     #pragma omp parallel for
-    for (int i = 0; i < n; i++) {
-        int index = row_ptr[i];  // private to each thread; safe
+    for (int i = 0; i < edges.size(); i++) {
+        auto &e = edges[i];
+        int u = std::get<0>(e);
 
-        for (int j = 0; j < m; j++) {
-            if (A[i][j] != 0) {
-                col_idx[index] = j;
-                val[index] = A[i][j];
-                index++;
-            }
+        // Each adj[u] is a separate vector → safe push_back
+        #pragma omp critical
+        adj[u].push_back({ std::get<1>(e), std::get<2>(e) });
+    }
+
+    // Build CSR rowPtr
+    CSRGraphWeighted g;
+    g.rowPtr.resize(V + 1);
+
+    g.rowPtr[0] = 0;
+
+    for (int i = 0; i < V; i++)
+        g.rowPtr[i + 1] = g.rowPtr[i] + adj[i].size();
+
+    int E = g.rowPtr[V];
+    g.colInd.resize(E);
+    g.weights.resize(E);
+
+    // Fill CSR data (parallel)
+    #pragma omp parallel for
+    for (int u = 0; u < V; u++) {
+        int index = g.rowPtr[u];
+        for (auto &p : adj[u]) {
+            g.colInd[index] = p.first;
+            g.weights[index] = p.second;
+            index++;
         }
     }
+
+    return g;
 }

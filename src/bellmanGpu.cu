@@ -89,8 +89,6 @@ void bellman::runGPU(int source)
     int threads = 256;
     int blocks = (V + threads - 1) / threads;
 
-    cout << "Running CUDA Bellman-Ford from source " << source << "...\n";
-
     // Bellman–Ford loop (V - 1 iterations)
     for (int iter = 0; iter < V - 1; iter++) {
 
@@ -117,14 +115,13 @@ void bellman::runGPU(int source)
     auto end_total = std::chrono::high_resolution_clock::now();
 
     // Output
-    cout << "\nBellman-Ford shortest distances:\n";
+    // cout << "\nBellman-Ford shortest distances:\n";
     // for (int i = 0; i < V; i++) {
     //     if (dist_h[i] == FLT_MAX)
     //         cout << "Node " << i << " -> unreachable\n";
     //     else
     //         cout << "Node " << i << " -> " << dist_h[i] << "\n";
     // }
-    cout << endl;
 
 
     gpuTime = std::chrono::duration<double, std::milli>(end_total - start_total).count();

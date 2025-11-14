@@ -5,7 +5,7 @@ NVCC = nvcc
 INCLUDES = -Iinclude
 
 # Source files
-SRC = src/main.cu src/bfs.cu src/bellmanGpu.cu src/bellmanCpu.cu
+SRC = src/main.cu src/bellmanGpu.cu src/bellmanCpu.cu
 
 # Output executable
 OUT = build/graphApp.exe
