@@ -1,58 +1,41 @@
-#pragma once
+#include <omp.h>
 #include <vector>
-#include <string>
-#include <fstream>
-#include <iostream>
-#include <algorithm>
-#include <tuple>
 
-struct CSRGraphWeighted {
-    std::vector<int> rowPtr;        // row pointers (size = V+1)
-    std::vector<int> colInd;        // column indices
-    std::vector<float> weights;     // edge weights corresponding to colInd
-};
+void buildCSR(int n, int m, float **A,std::vector<int> &row_ptr,std::vector<int> &col_idx,std::vector<float> &val)
+{
+    std::vector<int> row_count(n, 0);
 
-// Load weighted edge list into CSR format
-inline CSRGraphWeighted loadWeightedGraphToCSR(const std::string &filename, int &V) {
-    std::vector<std::tuple<int,int,float>> edges;
-    std::ifstream fin(filename);
+    // PASS 1: Count non-zero entries
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        int cnt = 0;
+        for (int j = 0; j < m; j++)
+            if (A[i][j] != 0) cnt++;
 
-    if (!fin.is_open()) {
-        std::cerr << "Error: Cannot open file " << filename << std::endl;
-        exit(1);
+        row_count[i] = cnt;
     }
 
-    int u, v;
-    float w;
-    int maxNode = -1;
+    // PASS 2: Build row_ptr (serial)
+    row_ptr.resize(n + 1);
+    row_ptr[0] = 0;
+    for (int i = 0; i < n; i++)
+        row_ptr[i + 1] = row_ptr[i] + row_count[i];
 
-    while (fin >> u >> v >> w) {
-        edges.push_back(std::make_tuple(u, v, w));
-        maxNode = std::max({maxNode, u, v});
-    }
-    fin.close();
+    int nnz = row_ptr[n];
+    col_idx.resize(nnz);
+    val.resize(nnz);
 
-    // Compute number of vertices
-    V = maxNode + 1;
+    // PASS 3: Fill CSR data
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        int index = row_ptr[i];  // private to each thread; safe
 
-    // Build adjacency list
-    std::vector<std::vector<std::pair<int,float>>> adj(V);
-    for (auto &e : edges) {
-        std::tie(u, v, w) = e;
-        adj[u].push_back({v, w});
-    }
-
-    // Build CSR
-    CSRGraphWeighted g;
-    g.rowPtr.resize(V + 1, 0);
-    for (int i = 0; i < V; ++i)
-        g.rowPtr[i + 1] = g.rowPtr[i] + adj[i].size();
-
-    for (int i = 0; i < V; ++i)
-        for (auto &p : adj[i]) {
-            g.colInd.push_back(p.first);
-            g.weights.push_back(p.second);
+        for (int j = 0; j < m; j++) {
+            if (A[i][j] != 0) {
+                col_idx[index] = j;
+                val[index] = A[i][j];
+                index++;
+            }
         }
-
-    return g;
+    }
 }
