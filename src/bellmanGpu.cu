@@ -32,8 +32,7 @@ __global__ void relaxKernelBF(int *rowPtr, int *colInd, float *weights, float *d
 
         // Atomic CAS loop
         while (new_dist < old_dist) {
-            float result = __int_as_float(
-                atomicCAS((int*)&dist[v],__float_as_int(old_dist),__float_as_int(new_dist)));
+            float result = __int_as_float(atomicCAS((int*)&dist[v],__float_as_int(old_dist),__float_as_int(new_dist)));
 
             // CAS success → distance updated
             if (result == old_dist) {
@@ -52,7 +51,7 @@ bellman::bellman(const CSRGraphWeighted &g) : graph(g) {}
 void bellman::runGPU(int source)
 {
 
-    auto start_total = std::chrono::high_resolution_clock::now();
+    auto start_total = chrono::high_resolution_clock::now();
 
 
     int V = graph.rowPtr.size() - 1;
@@ -116,7 +115,7 @@ void bellman::runGPU(int source)
 
 
     // Timing end
-    auto end_total = std::chrono::high_resolution_clock::now();
+    auto end_total = chrono::high_resolution_clock::now();
 
     // Output
     // cout << "\nBellman-Ford shortest distances:\n";
@@ -128,7 +127,7 @@ void bellman::runGPU(int source)
     // }
 
 
-    gpuTime = std::chrono::duration<double, std::milli>(end_total - start_total).count();
+    gpuTime = chrono::duration<double, milli>(end_total - start_total).count();
     cout << "\nGPU Execution Time: " << gpuTime << " ms\n";
 
     // Free GPU

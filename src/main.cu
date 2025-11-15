@@ -4,7 +4,6 @@
 #include "bellman.h"
 
 using namespace std;
-using namespace std::chrono;
 
 int main() {
     while (true) {
@@ -16,17 +15,16 @@ int main() {
         cout << "5. Exit\n";
         cout << "Enter your choice: ";
 
-        int choice;
-        cin >> choice;
+        int choice; cin >> choice;
+        
         if (choice == 5) break;
 
         int src, V;
         string file = "./data/large_weight.txt"; 
 
-        cout << "Enter source vertex: ";
-        cin >> src;
+        cout << "Enter source vertex: "; cin >> src;
 
-        CSRGraphWeighted g = loadWeightedGraphToCSR(file, V);
+        CSRGraphWeighted g = CSR_conversion(file, V);
         bellman bf(g);
 
         if (choice == 1) {
@@ -43,8 +41,10 @@ int main() {
 
         }
         else if (choice == 3) {
+
             file = "./data/delivery_dataset.txt"; 
-            CSRGraphWeighted g = loadWeightedGraphToCSR(file, V);
+
+            CSRGraphWeighted g = CSR_conversion(file, V);
             bellman bf2(g);
             
             cout << "\nRunning Bellman-Ford on CPU (small dataset)...\n";
@@ -53,7 +53,8 @@ int main() {
         }
         else if (choice == 4) {
             file = "./data/delivery_dataset.txt"; 
-            CSRGraphWeighted g = loadWeightedGraphToCSR(file, V);
+
+            CSRGraphWeighted g = CSR_conversion(file, V);
             bellman bf2(g);
             
             cout << "\nRunning Bellman-Ford on GPU (small dataset)...\n";
