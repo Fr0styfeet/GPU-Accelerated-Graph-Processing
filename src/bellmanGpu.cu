@@ -12,14 +12,16 @@ using namespace std;
 
 
 // GPU kernel (Bellman–Ford relax all edges)
-__global__ void relaxKernelBF(int *rowPtr, int *colInd, float *weights,
-                              float *dist, int V, int *d_done)
+__global__ void relaxKernelBF(int *rowPtr, int *colInd, float *weights, float *dist, int V, int *d_done)
 {
+
     int u = blockIdx.x * blockDim.x + threadIdx.x;
     if (u >= V || dist[u] == FLT_MAX) return;
 
+    
     int start = rowPtr[u];
     int end = rowPtr[u + 1];
+
 
     for (int i = start; i < end; i++) {
         int v = colInd[i];
@@ -31,10 +33,7 @@ __global__ void relaxKernelBF(int *rowPtr, int *colInd, float *weights,
         // Atomic CAS loop
         while (new_dist < old_dist) {
             float result = __int_as_float(
-                atomicCAS((int*)&dist[v],
-                          __float_as_int(old_dist),
-                          __float_as_int(new_dist))
-            );
+                atomicCAS((int*)&dist[v],__float_as_int(old_dist),__float_as_int(new_dist)));
 
             // CAS success → distance updated
             if (result == old_dist) {
@@ -73,6 +72,7 @@ void bellman::runGPU(int source)
 
     vector<float> weights_f(graph.weights.begin(), graph.weights.end());
 
+
     // Allocate GPU
     cudaMalloc(&d_rowPtr, (V + 1) * sizeof(int));
     cudaMalloc(&d_colInd, graph.colInd.size() * sizeof(int));
@@ -80,14 +80,18 @@ void bellman::runGPU(int source)
     cudaMalloc(&d_dist, V * sizeof(float));
     cudaMalloc(&d_done, sizeof(int));
 
+
+
     // Copy to GPU
     cudaMemcpy(d_rowPtr, graph.rowPtr.data(), (V + 1) * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_colInd, graph.colInd.data(), graph.colInd.size() * sizeof(int), cudaMemcpyHostToDevice);
     cudaMemcpy(d_weights, weights_f.data(), weights_f.size() * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_dist, dist_h.data(), V * sizeof(float), cudaMemcpyHostToDevice);
 
+
     int threads = 256;
     int blocks = (V + threads - 1) / threads;
+
 
     // Bellman–Ford loop (V - 1 iterations)
     for (int iter = 0; iter < V - 1; iter++) {
