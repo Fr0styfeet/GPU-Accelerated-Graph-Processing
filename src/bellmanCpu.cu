@@ -8,15 +8,14 @@ using namespace std;
 
 void bellman::runCPU(int source) {
 
-    int V = graph.rowPtr.size() - 1;     // number of vertices (correct for CSR)
-    int E = graph.colInd.size();         // number of edges
+    int V = graph.rowPtr.size() - 1;     // number of vertices 
 
     vector<float> dist(V, INF);
     dist[source] = 0;
 
     auto start = chrono::high_resolution_clock::now();
 
-    // Main Bellman-Ford (V-1 rounds)
+    // Main Bellman-Ford till v-1 
     for (int iter = 0; iter < V - 1; iter++) {
         bool changed = false;
 

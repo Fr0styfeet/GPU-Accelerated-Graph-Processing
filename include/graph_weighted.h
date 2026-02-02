@@ -50,12 +50,12 @@ inline CSRGraphWeighted CSR_conversion(const string &filename, int &V)
     for (int i = 0; i < edges.size(); i++) {
         int a = edges[i].u;
 
-        // pushing is not thread-safe
+        // critical section
         #pragma omp critical
         adj[a].push_back({ edges[i].v, edges[i].w });
     }
 
-    // Build CSR rowPtr
+    // Building CSR rowPtr
     CSRGraphWeighted g;
     g.rowPtr.resize(V + 1);
     g.rowPtr[0] = 0;
@@ -68,11 +68,11 @@ inline CSRGraphWeighted CSR_conversion(const string &filename, int &V)
     g.colInd.resize(E);
     g.weights.resize(E);
 
-    // Fill CSR arrays (parallel)
+    // Filling CSR arrays 
     #pragma omp parallel for
     for (int u = 0; u < V; u++) {
         int index = g.rowPtr[u];
-        for (auto &p : adj[u]) {
+        for (auto &p:adj[u]) {
             g.colInd[index] = p.first;
             g.weights[index] = p.second;
             index++;

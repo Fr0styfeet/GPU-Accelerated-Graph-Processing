@@ -2,6 +2,7 @@
 #include <chrono>
 #include "graph_weighted.h"
 #include "bellman.h"
+#include "delta.h"
 
 using namespace std;
 
@@ -12,12 +13,15 @@ int main() {
         cout << "2. Run Bellman-Ford on GPU (large dataset)\n";
         cout << "3. Run Bellman-Ford on CPU (small dataset)\n";
         cout << "4. Run Bellman-Ford on GPU (small dataset)\n";
-        cout << "5. Exit\n";
+        cout << "5. Run Delta Stepping on GPU (large dataset)\n";
+
+        
+        cout << "6. Exit\n";
         cout << "Enter your choice: ";
 
         int choice; cin >> choice;
         
-        if (choice == 5) break;
+        if (choice == 6) break;
 
         int src, V;
         string file = "./data/large_weight.txt"; 
@@ -59,6 +63,14 @@ int main() {
             
             cout << "\nRunning Bellman-Ford on GPU (small dataset)...\n";
             bf2.runGPU(src);
+
+        }
+        else if (choice == 5) {
+
+            DeltaStepping ds(g, 1.0f); // Use delta = 1.0f
+            
+            cout << "\nRunning Delta Stepping on GPU (large dataset)...\n";
+            ds.runGPU(src);
 
         }
         else {

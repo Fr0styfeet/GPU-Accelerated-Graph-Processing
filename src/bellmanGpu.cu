@@ -12,7 +12,7 @@ using namespace std;
 
 
 // GPU kernel (Bellman–Ford relax all edges)
-__global__ void relaxKernelBF(int *rowPtr, int *colInd, float *weights, float *dist, int V, int *d_done)
+__global__ void BFKernel(int *rowPtr, int *colInd, float *weights, float *dist, int V, int *d_done)
 {
 
     int u = blockIdx.x * blockDim.x + threadIdx.x;
@@ -50,7 +50,7 @@ bellman::bellman(const CSRGraphWeighted &g) : graph(g) {}
 
 void bellman::runGPU(int source)
 {
-
+    // Time start
     auto start_total = chrono::high_resolution_clock::now();
 
 
@@ -88,7 +88,7 @@ void bellman::runGPU(int source)
     cudaMemcpy(d_dist, dist_h.data(), V * sizeof(float), cudaMemcpyHostToDevice);
 
 
-    int threads = 256;
+    int threads = 1024;
     int blocks = (V + threads - 1) / threads;
 
 
@@ -98,7 +98,7 @@ void bellman::runGPU(int source)
         int done_h = 1;
         cudaMemcpy(d_done, &done_h, sizeof(int), cudaMemcpyHostToDevice);
 
-        relaxKernelBF<<<blocks, threads>>>(d_rowPtr, d_colInd, d_weights, d_dist, V, d_done);
+        BFKernel<<<blocks, threads>>>(d_rowPtr, d_colInd, d_weights, d_dist, V, d_done);
         cudaDeviceSynchronize();
 
         cudaMemcpy(&done_h, d_done, sizeof(int), cudaMemcpyDeviceToHost);
